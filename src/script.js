@@ -22,6 +22,7 @@ const STORAGE_KEY = "rate_index";
     function listenForClassChange(player_class, video_class) {
         const player_element = document.querySelector(player_class);
         const video_element = document.querySelector(video_class);
+        var adStarted = 0;
 
         const observer = new MutationObserver((mutationsList) => {
             mutationsList.forEach((mutation) => {
@@ -38,12 +39,19 @@ const STORAGE_KEY = "rate_index";
                                 .click();
                             console.log("Ad skipped!");
                             video_element.muted = false;
-                        } else {
+                        } else if (adStarted === 0) {
+                            adStarted = new Date().getTime();
+                            setTimeout(() => {
+                                video_element.playbackRate = 16.0;
+                            }, 2000);
+                            //video_element.playbackRate = 16.0;
+                        } else if (adStarted < new Date().getTime() - 2000) {
                             video_element.playbackRate = 16.0;
                         }
                     } else {
                         video_element.playbackRate = rates[index];
                         video_element.muted = false;
+                        adStarted = 0;
                     }
                 }
             });
@@ -125,6 +133,11 @@ const STORAGE_KEY = "rate_index";
             document.querySelector("#primary-inner #below").firstChild &&
             document.querySelector(".html5-main-video")
         ) {
+            if (window.trustedTypes && window.trustedTypes.createPolicy) {
+                window.trustedTypes.createPolicy("default", {
+                    createHTML: (string, sink) => string,
+                });
+            }
             createVideoPlaybackRateControl(
                 "#primary-inner #below",
                 ".html5-main-video"
